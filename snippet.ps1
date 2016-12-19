@@ -64,3 +64,41 @@ catch
                                 }
 
                                 [xml]$apiContent         = $data.Content
+                                
+                                
+                                
+                                
+   __________________________________
+   Steps tyo reconstruct
+   
+      $cred           = Get-Credential
+    $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f $cred.GetNetworkCredential().UserName,$cred.GetNetworkCredential().Password)))
+    
+        [array]$data =  Invoke-RestMethod `
+                    -Uri "https://plex.tv/users/sign_in.xml"` 
+                    -Method POST `
+                    -headers   @{
+                                    'Authorization'=("Basic {0}" -f $base64AuthInfo);
+                                    'X-Plex-Client-Identifier'="PowerShell-Test";
+                                    'X-Plex-Product'='PowerShell-Test';
+                                    'X-Plex-Version'="V0.01";
+                                    'X-Plex-Username'=$cred.GetNetworkCredential().UserName
+                                }
+    
+    $authToken   = $data.user.authenticationToken
+    
+    [string]$localPlexAddr    = "server01"
+    [string]$plexRESTAddr   = "library/sections"
+    
+        [array]$data =  Invoke-restmethod `
+                    -Uri "http://$localPlexAddr`:32400/$plexRESTAddr" `
+                    -Method GET `
+                    -Headers   @{
+                                'Authorization'=("Basic {0}" -f $base64AuthInfo);
+                                'Accept'= 'application/json'
+                                'X-Plex-Client-Identifier'="PowerShell-Test";
+                                'X-Plex-Product'='PowerShell-Test';
+                                'X-Plex-Version'="V0.01";
+                                'X-Plex-Username'=$cred.GetNetworkCredential().UserName;
+                                'X-Plex-Token'=$authToken
+                                }
